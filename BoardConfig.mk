@@ -1,18 +1,11 @@
 #
-# Copyright (C) 2019 The TwrpBuilder Open-Source Project
+# Copyright (C) 2026 The Android Open Source Project
+# Copyright (C) 2026 SebaUbuntu's TWRP device tree generator
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# SPDX-License-Identifier: Apache-2.0
 #
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
+
+DEVICE_PATH := device/xiaomi/gemstone
 
 # For building with minimal manifest
 ALLOW_MISSING_DEPENDENCIES := true
@@ -21,13 +14,9 @@ BUILD_BROKEN_DUP_RULES := true
 BUILD_BROKEN_ELF_PREBUILT_PRODUCT_COPY_FILES := true
 BUILD_BROKEN_MISSING_REQUIRED_MODULES := true
 
-# Init
-TARGET_INIT_VENDOR_LIB := //$(DEVICE_PATH):libinit_stone
-TARGET_RECOVERY_DEVICE_MODULES := libinit_stone
-
 # Architecture
 TARGET_ARCH := arm64
-TARGET_ARCH_VARIANT := armv8-2a-dotprod
+TARGET_ARCH_VARIANT := armv8-a
 TARGET_CPU_ABI := arm64-v8a
 TARGET_CPU_VARIANT := cortex-a55
 
@@ -51,41 +40,51 @@ TARGET_BOARD_PLATFORM := xiaomi_sm6375
 TARGET_BOARD_PLATFORM_GPU := qcom-adreno619
 QCOM_BOARD_PLATFORMS += xiaomi_sm6375
 
-# Kernel
-VENDOR_CMDLINE := "androidboot.hardware=qcom \
-                   androidboot.memcg=1 \
-                   androidboot.selinux=permissive \
-                   androidboot.usbcontroller=4e00000.dwc3 \
-                   cgroup.memory=nokmem,nosocket \
-                   loop.max_part=7 \
-                   msm_rtb.filter=0x237 \
-                   service_locator.enable=1 \
-                   swiotlb=0 \
-                   pcie_ports=compat \
-                   iptable_raw.raw_before_defrag=1 \
-                   ip6table_raw.raw_before_defrag=1 \
-                   androidboot.init_fatal_reboot_target=recovery"
+# Kernel / Vendor Boot Configuration (Corrigido via AIK)
+BOARD_VENDOR_CMDLINE := console=ttyMSM0,115200n8 earlycon=msm_geni_serial,0x04C8C000 androidboot.hardware=qcom androidboot.console=ttyMSM0 androidboot.memcg=1 lpm_levels.sleep_disabled=1 video=vfb:640x400,bpp=32,memsize=3072000 msm_rtb.filter=0x237 service_locator.enable=1 androidboot.usbcontroller=4e00000.dwc3 swiotlb=0 loop.max_part=7 cgroup.memory=nokmem,nosocket iptable_raw.raw_before_defrag=1 ip6table_raw.raw_before_defrag=1 firmware_class.path=/vendor/firmware androidboot.selinux=permissive androidboot.init_fatal_reboot_target=recovery
 
+BOARD_BOOT_HEADER_VERSION := 3
+BOARD_HEADER_SIZE := 2112
 BOARD_KERNEL_PAGESIZE := 4096
 BOARD_KERNEL_BASE := 0x00000000
+BOARD_KERNEL_OFFSET := 0x00008000
+BOARD_RAMDISK_OFFSET := 0x01000000
+BOARD_TAGS_OFFSET := 0x00000100
+BOARD_DTB_OFFSET := 0x01f00000
+
 TARGET_KERNEL_ARCH := arm64
 TARGET_KERNEL_HEADER_ARCH := arm64
-BOARD_BOOT_HEADER_VERSION := 3
 BOARD_USES_GENERIC_KERNEL_IMAGE := true
 BOARD_RAMDISK_USE_LZ4 := true
 
 BOARD_MKBOOTIMG_ARGS += --header_version $(BOARD_BOOT_HEADER_VERSION)
-BOARD_MKBOOTIMG_ARGS += --vendor_cmdline $(VENDOR_CMDLINE)
+BOARD_MKBOOTIMG_ARGS += --vendor_cmdline "$(BOARD_VENDOR_CMDLINE)"
 BOARD_MKBOOTIMG_ARGS += --pagesize $(BOARD_KERNEL_PAGESIZE) --board ""
+BOARD_MKBOOTIMG_ARGS += --kernel_offset $(BOARD_KERNEL_OFFSET)
+BOARD_MKBOOTIMG_ARGS += --ramdisk_offset $(BOARD_RAMDISK_OFFSET)
+BOARD_MKBOOTIMG_ARGS += --tags_offset $(BOARD_TAGS_OFFSET)
+BOARD_MKBOOTIMG_ARGS += --dtb_offset $(BOARD_DTB_OFFSET)
+#BOARD_MKBOOTIMG_ARGS += --header_size $(BOARD_HEADER_SIZE)
 
-# BOARD_INCLUDE_DTB_IN_BOOTIMG := true
-TARGET_PREBUILT_DTB := $(DEVICE_PATH)/prebuilt/$(PRODUCT_RELEASE_NAME)/dtb
+# Kernel - prebuilt
+TARGET_FORCE_PREBUILT_KERNEL := true
+ifeq ($(TARGET_FORCE_PREBUILT_KERNEL),true)
+TARGET_PREBUILT_KERNEL := $(DEVICE_PATH)/prebuilt/Image
+TARGET_PREBUILT_DTB := $(DEVICE_PATH)/prebuilt/dtb
+TARGET_PREBUILT_DTBO := $(DEVICE_PATH)/prebuilt/dtbo
+BOARD_PREBUILT_DTBOIMAGE := $(TARGET_PREBUILT_DTBO)
 BOARD_MKBOOTIMG_ARGS += --dtb $(TARGET_PREBUILT_DTB)
+BOARD_INCLUDE_DTB_IN_BOOTIMG := 
+endif
 
-#A/B
+# A/B & Recovery in vendor_boot
 BOARD_MOVE_RECOVERY_RESOURCES_TO_VENDOR_BOOT := true
+# BOARD_INCLUDE_RECOVERY_RAMDISK_IN_VENDOR_BOOT := true
 BOARD_BUILD_SYSTEM_ROOT_IMAGE := false
 AB_OTA_UPDATER := true
+TARGET_NO_RECOVERY := true
+BOARD_USES_RECOVERY_AS_BOOT := false
+BOARD_EXCLUDE_KERNEL_FROM_RECOVERY_IMAGE := true
 
 AB_OTA_PARTITIONS += \
     boot \
@@ -104,35 +103,24 @@ BOARD_AVB_ENABLE := true
 BOARD_AVB_MAKE_VBMETA_IMAGE_ARGS += --flags 3
 
 # Partitions
-BOARD_FLASH_BLOCK_SIZE := 262144 # (BOARD_KERNEL_PAGESIZE * 64)
+BOARD_FLASH_BLOCK_SIZE := 262144
 BOARD_BOOTIMAGE_PARTITION_SIZE := 134217728
-BOARD_DTBOIMG_PARTITION_SIZE := 8388608
 BOARD_VENDOR_BOOTIMAGE_PARTITION_SIZE := 100663296
 
 # Dynamic Partition
 BOARD_SUPER_PARTITION_SIZE := 9126805504
 BOARD_SUPER_PARTITION_GROUPS := qti_dynamic_partitions
 BOARD_QTI_DYNAMIC_PARTITIONS_PARTITION_LIST := odm system system_ext vendor product
-BOARD_QTI_DYNAMIC_PARTITIONS_SIZE := 9122611200 # BOARD_SUPER_PARTITION_SIZE - 4MB
-
-# System as root
-BOARD_ROOT_EXTRA_FOLDERS := bluetooth dsp firmware persist
-BOARD_SUPPRESS_SECURE_ERASE := true
+BOARD_QTI_DYNAMIC_PARTITIONS_SIZE := 9122611200
 
 # File systems
+BOARD_HAS_LARGE_FILESYSTEM := true
 TARGET_USERIMAGES_USE_EXT4 := true
 TARGET_USERIMAGES_USE_F2FS := true
-
-# Workaround for error copying vendor files to recovery ramdisk
 BOARD_VENDORIMAGE_FILE_SYSTEM_TYPE := ext4
 TARGET_COPY_OUT_VENDOR := vendor
 
-# Recovery
-TARGET_RECOVERY_FSTAB := $(DEVICE_PATH)/recovery/root/system/etc/recovery.fstab
-BOARD_HAS_LARGE_FILESYSTEM := true
-TARGET_RECOVERY_PIXEL_FORMAT := "RGBX_8888"
-
-# Crypto
+# Crypto / Decryption
 BOARD_USES_QCOM_FBE_DECRYPTION := true
 BOARD_USES_METADATA_PARTITION := true
 PLATFORM_VERSION := 99.87.36
@@ -145,8 +133,9 @@ TW_INCLUDE_CRYPTO_FBE := true
 TW_INCLUDE_FBE_METADATA_DECRYPT := true
 TW_USE_FSCRYPT_POLICY := 2
 
-# TWRP specific build flags
+# TWRP Configuration
 TW_THEME := portrait_hdpi
+TARGET_RECOVERY_PIXEL_FORMAT := "RGBX_8888"
 RECOVERY_SDCARD_ON_DATA := true
 TARGET_RECOVERY_QCOM_RTC_FIX := true
 TW_EXCLUDE_DEFAULT_USB_INIT := true
@@ -159,45 +148,15 @@ TW_MAX_BRIGHTNESS := 2047
 TW_DEFAULT_BRIGHTNESS := 200
 TW_NO_SCREEN_BLANK := true
 TW_EXCLUDE_APEX := true
-TW_HAS_EDL_MODE := false
 TW_INCLUDE_REPACKTOOLS := true
 TW_INCLUDE_RESETPROP := true
-TW_INCLUDE_LIBRESETPROP := true
 TW_FRAMERATE := 120
-TW_LOAD_VENDOR_MODULES := "adsp_loader_dlkm.ko"
+
+# Correções Visuais (Bateria e CPU na mesma linha)
 TW_CUSTOM_CPU_TEMP_PATH := "/sys/class/thermal/thermal_zone28/temp"
+TW_CUSTOM_BATTERY_PATH := "/sys/class/power_supply/battery/capacity"
 TW_BATTERY_SYSFS_WAIT_SECONDS := 5
-TW_BACKUP_EXCLUSIONS := /data/fonts
 
-# StatusBar
-TW_STATUS_ICONS_ALIGN := center
-TW_CUSTOM_CPU_POS := "250"
-TW_CUSTOM_CLOCK_POS := "50"
-TW_CUSTOM_BATTERY_POS := "790"
-
-# Maintainer
-TW_DEVICE_VERSION := gawasvedraj
-OF_MAINTAINER := gawasvedraj
-
-# Ofox flags
-FOX_VIRTUAL_AB_DEVICE := 1
-OF_FLASHLIGHT_ENABLE := 0
-OF_IGNORE_LOGICAL_MOUNT_ERRORS := 1
-OF_USE_GREEN_LED := 0
-
-# screen settings
-OF_SCREEN_H := 2400
-OF_STATUS_H := 100
-OF_STATUS_INDENT_LEFT := 48
-OF_STATUS_INDENT_RIGHT := 48
-OF_HIDE_NOTCH := 1
-OF_CLOCK_POS := 1
-
-# TWRP Debug Flags
+# Debug
 TWRP_INCLUDE_LOGCAT := true
 TARGET_USES_LOGD := true
-
-# Recovery-in-boot / vendor_boot
-TARGET_NO_RECOVERY := true
-BOARD_USES_RECOVERY_AS_BOOT := false
-BOARD_EXCLUDE_KERNEL_FROM_RECOVERY_IMAGE := true
