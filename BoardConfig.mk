@@ -70,6 +70,7 @@ BOARD_MKBOOTIMG_ARGS += --tags_offset $(BOARD_TAGS_OFFSET)
 BOARD_MKBOOTIMG_ARGS += --dtb_offset $(BOARD_DTB_OFFSET)
 
 # Kernel - prebuilt (Corrigido: Sem arquivo Image e sem o 'endif' perdido)
+BOARD_KERNEL_IMAGE_NAME := Image
 TARGET_PREBUILT_DTB := $(DEVICE_PATH)/prebuilt/stone/dtb
 TARGET_PREBUILT_DTBO := $(DEVICE_PATH)/prebuilt/stone/dtbo
 BOARD_PREBUILT_DTBOIMAGE := $(TARGET_PREBUILT_DTBO)
