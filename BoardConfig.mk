@@ -44,6 +44,9 @@ TARGET_BOARD_PLATFORM := xiaomi_sm6375
 TARGET_BOARD_PLATFORM_GPU := qcom-adreno619
 QCOM_BOARD_PLATFORMS += xiaomi_sm6375
 
+# Prebuilt Vendor Ramdisk (crDroid Boot Brain)
+BOARD_PREBUILT_VENDOR_RAMDISK := $(DEVICE_PATH)/prebuilt/vendor/vendor_ramdisk.cpio
+
 # Kernel / Vendor Boot Configuration (Corrigido via AIK - Resolve o Bootloop)
 BOARD_VENDOR_CMDLINE := console=ttyMSM0,115200n8 earlycon=msm_geni_serial,0x04C8C000 androidboot.hardware=qcom androidboot.console=ttyMSM0 androidboot.memcg=1 lpm_levels.sleep_disabled=1 video=vfb:640x400,bpp=32,memsize=3072000 msm_rtb.filter=0x237 service_locator.enable=1 androidboot.usbcontroller=4e00000.dwc3 swiotlb=0 loop.max_part=7 cgroup.memory=nokmem,nosocket iptable_raw.raw_before_defrag=1 ip6table_raw.raw_before_defrag=1 firmware_class.path=/vendor/firmware androidboot.selinux=permissive androidboot.init_fatal_reboot_target=recovery
 
