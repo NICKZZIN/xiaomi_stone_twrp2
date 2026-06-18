@@ -14,6 +14,10 @@ BUILD_BROKEN_DUP_RULES := true
 BUILD_BROKEN_ELF_PREBUILT_PRODUCT_COPY_FILES := true
 BUILD_BROKEN_MISSING_REQUIRED_MODULES := true
 
+# Init (Adicionado do outro repositório - Vital para a criptografia FBE)
+TARGET_INIT_VENDOR_LIB := //$(DEVICE_PATH):libinit_stone
+TARGET_RECOVERY_DEVICE_MODULES := libinit_stone
+
 # Architecture
 TARGET_ARCH := arm64
 TARGET_ARCH_VARIANT := armv8-a
@@ -40,7 +44,7 @@ TARGET_BOARD_PLATFORM := xiaomi_sm6375
 TARGET_BOARD_PLATFORM_GPU := qcom-adreno619
 QCOM_BOARD_PLATFORMS += xiaomi_sm6375
 
-# Kernel / Vendor Boot Configuration (Corrigido via AIK)
+# Kernel / Vendor Boot Configuration (Corrigido via AIK - Resolve o Bootloop)
 BOARD_VENDOR_CMDLINE := console=ttyMSM0,115200n8 earlycon=msm_geni_serial,0x04C8C000 androidboot.hardware=qcom androidboot.console=ttyMSM0 androidboot.memcg=1 lpm_levels.sleep_disabled=1 video=vfb:640x400,bpp=32,memsize=3072000 msm_rtb.filter=0x237 service_locator.enable=1 androidboot.usbcontroller=4e00000.dwc3 swiotlb=0 loop.max_part=7 cgroup.memory=nokmem,nosocket iptable_raw.raw_before_defrag=1 ip6table_raw.raw_before_defrag=1 firmware_class.path=/vendor/firmware androidboot.selinux=permissive androidboot.init_fatal_reboot_target=recovery
 
 BOARD_BOOT_HEADER_VERSION := 3
@@ -64,22 +68,15 @@ BOARD_MKBOOTIMG_ARGS += --kernel_offset $(BOARD_KERNEL_OFFSET)
 BOARD_MKBOOTIMG_ARGS += --ramdisk_offset $(BOARD_RAMDISK_OFFSET)
 BOARD_MKBOOTIMG_ARGS += --tags_offset $(BOARD_TAGS_OFFSET)
 BOARD_MKBOOTIMG_ARGS += --dtb_offset $(BOARD_DTB_OFFSET)
-#BOARD_MKBOOTIMG_ARGS += --header_size $(BOARD_HEADER_SIZE)
 
-# Kernel - prebuilt
-TARGET_FORCE_PREBUILT_KERNEL := true
-ifeq ($(TARGET_FORCE_PREBUILT_KERNEL),true)
-TARGET_PREBUILT_KERNEL := $(DEVICE_PATH)/prebuilt/stone/Image
+# Kernel - prebuilt (Corrigido: Sem arquivo Image e sem o 'endif' perdido)
 TARGET_PREBUILT_DTB := $(DEVICE_PATH)/prebuilt/stone/dtb
 TARGET_PREBUILT_DTBO := $(DEVICE_PATH)/prebuilt/stone/dtbo
 BOARD_PREBUILT_DTBOIMAGE := $(TARGET_PREBUILT_DTBO)
 BOARD_MKBOOTIMG_ARGS += --dtb $(TARGET_PREBUILT_DTB)
-BOARD_INCLUDE_DTB_IN_BOOTIMG := 
-endif
 
 # A/B & Recovery in vendor_boot
 BOARD_MOVE_RECOVERY_RESOURCES_TO_VENDOR_BOOT := true
-# BOARD_INCLUDE_RECOVERY_RAMDISK_IN_VENDOR_BOOT := true
 BOARD_BUILD_SYSTEM_ROOT_IMAGE := false
 AB_OTA_UPDATER := true
 TARGET_NO_RECOVERY := true
@@ -123,7 +120,7 @@ TARGET_COPY_OUT_VENDOR := vendor
 # Crypto / Decryption
 BOARD_USES_QCOM_FBE_DECRYPTION := true
 BOARD_USES_METADATA_PARTITION := true
-PLATFORM_VERSION := 99.87.36
+PLATFORM_VERSION := 12.1
 PLATFORM_VERSION_LAST_STABLE := $(PLATFORM_VERSION)
 PLATFORM_SECURITY_PATCH := 2099-12-31
 VENDOR_SECURITY_PATCH := $(PLATFORM_SECURITY_PATCH)
@@ -152,7 +149,8 @@ TW_INCLUDE_REPACKTOOLS := true
 TW_INCLUDE_RESETPROP := true
 TW_FRAMERATE := 120
 
-# Correções Visuais (Bateria e CPU na mesma linha)
+# Módulo do Touch e Correções Visuais
+TW_LOAD_VENDOR_MODULES := "adsp_loader_dlkm.ko"
 TW_CUSTOM_CPU_TEMP_PATH := "/sys/class/thermal/thermal_zone28/temp"
 TW_CUSTOM_BATTERY_PATH := "/sys/class/power_supply/battery/capacity"
 TW_BATTERY_SYSFS_WAIT_SECONDS := 5
