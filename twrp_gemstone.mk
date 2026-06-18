@@ -14,19 +14,19 @@
 # limitations under the License.
 #
 
-DEVICE_PATH := device/xiaomi/stone
+DEVICE_PATH := device/xiaomi/gemstone
 
 # Inherit from device.mk configuration
 $(call inherit-product, $(DEVICE_PATH)/device.mk)
 
 # Release name
-PRODUCT_RELEASE_NAME := stone
+PRODUCT_RELEASE_NAME := gemstone
 
 ## Device identifier. This must come after all inclusions
-PRODUCT_DEVICE := stone
-PRODUCT_NAME := twrp_stone
-PRODUCT_BRAND := Xiaomi
-PRODUCT_MANUFACTURER := Xiaomi
+PRODUCT_DEVICE := gemstone
+PRODUCT_NAME := twrp_gemstone
+PRODUCT_BRAND := Redmi
+PRODUCT_MANUFACTURER := xiaomi
 
 # Assert
 TARGET_OTA_ASSERT_DEVICE := stone,gemstone,moonstone,sunstone
